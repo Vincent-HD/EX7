@@ -1,0 +1,100 @@
+version: '3.1'
+
+services:
+
+
+
+  traefik:
+    image: traefik:latest
+    restart: unless-stopped
+    container_name: seven_traefik
+    command:
+      - "--log.level=DEBUG"
+      - "--api"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.docker.exposedByDefault=false" #Evite de regarder tout les containeurs
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./traefik/letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.http.routers.http_traefik_dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.http_traefik_dashboard.service=api@internal"
+      - "traefik.http.routers.http_traefik_dashboard.entrypoints=web"
+      - "traefik.http.middlewares.traefik_strip.stripprefix.prefixes=/traefik"
+
+      - "traefik.http.services.http_traefik_dashboard.loadbalancer.server.port=80"
+      - "traefik.enable=true" #Dit a traefik de router
+    networks:
+      seven:
+          ipv4_address: 172.20.0.2
+
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    container_name: seven_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+#    ports:
+#      - 27017:27017
+    volumes:
+      - ./data/mongodb:/data/db
+    labels:
+      - "traefik.http.routers.http_mongodb.rule=Host(`mongodb.localhost`)"
+      - "traefik.http.routers.http_mongodb.entrypoints=web"
+      
+      - "traefik.enable=true" #Dit a traefik de router
+    networks:
+      seven:
+          ipv4_address: 172.20.0.3
+
+
+  api:
+    image: flaskbase
+    build: ./python
+    restart: unless-stopped
+    container_name: seven_api
+    ports:
+      - 5000:5000
+    volumes: 
+      - ./data/apps/api:/app
+    labels:
+      - "traefik.http.routers.http_api.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.http_api.entrypoints=web"
+      - "traefik.http.middlewares.http_api.stripprefix.prefixes=/weather/temperature"
+      - "traefik.http.services.http_api.loadbalancer.server.port=5000"
+      - "traefik.enable=true" #Dit a traefik de router
+    networks:
+      seven:
+          ipv4_address: 172.20.0.4
+  
+  front:
+    image: flaskbase
+    build: ./python
+    restart: unless-stopped
+    container_name: seven_front
+#    ports:
+#      - 5001:5000
+    volumes: 
+      - ./data/apps/front:/app
+    labels:
+      - "traefik.http.routers.http_front.rule=Host(`front.localhost`)"
+      - "traefik.http.routers.http_front.entrypoints=web"
+      
+      - "traefik.enable=true" #Dit a traefik de router
+    networks:
+      seven:
+          ipv4_address: 172.20.0.5
+
+networks:
+  seven:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

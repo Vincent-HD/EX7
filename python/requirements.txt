@@ -1,0 +1,6 @@
+flask
+flask-cors
+Werkzeug==0.16.1
+flask-restx
+request
+pymongo

@@ -1,0 +1,65 @@
+version: '3.1'
+
+services:
+
+
+  nginx:
+    image: nginx
+    container_name: seven_nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - './nginx/nginx.conf:/etc/nginx/nginx.conf'
+    networks:
+      seven:
+          ipv4_address: 172.20.0.2
+
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    container_name: seven_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+#    ports:
+#      - 27017:27017
+    volumes:
+      - ./data/mongodb:/data/db
+    networks:
+      seven:
+          ipv4_address: 172.20.0.3
+
+
+  api:
+    image: flaskbase
+    build: ./python
+    restart: unless-stopped
+    container_name: seven_api
+    ports:
+      - 5000:5000
+    volumes: 
+      - ./data/apps/api:/app
+    networks:
+      seven:
+          ipv4_address: 172.20.0.4
+  
+  front:
+    image: flaskbase
+    build: ./python
+    restart: unless-stopped
+    container_name: seven_front
+    ports:
+      - 5001:5000
+    volumes: 
+      - ./data/apps/front:/app
+    networks:
+      seven:
+          ipv4_address: 172.20.0.5
+
+networks:
+  seven:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
