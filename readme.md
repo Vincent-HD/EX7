@@ -18,7 +18,7 @@ Pour Traefik:
 git clone https://github.com/Vincent-HD/SEVEN.git
 docker-compose -f docker-composeTraefik.yml up -d
 ```
-Liens des apps: http://api.localhost et http://front.localhost
+Liens des apps: http://api.localhost et http://front.localhost et http://front.localhost/chart
 
 Pour Nginx
 
@@ -26,4 +26,4 @@ Pour Nginx
 git clone https://github.com/Vincent-HD/SEVEN.git
 docker-compose up -d
 ```
-Liens des apps: http://localhost/api et http://localhost/front
+Liens des apps: http://localhost/api et http://localhost/front et http://localhost/front/chart
