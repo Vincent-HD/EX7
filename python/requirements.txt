@@ -1,6 +1,6 @@
 flask
 flask-cors
-Werkzeug==0.16.1
+Werkzeug==2.2.3
 flask-restx
 request
 pymongo
